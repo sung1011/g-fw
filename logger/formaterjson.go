@@ -10,9 +10,9 @@ type FormatterJson struct {
 }
 
 func (f *FormatterJson) Render(l *Log) ([]byte, error) {
-	b, err := json.Marshal(l)
+	bs, err := json.Marshal(l)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal fields to JSON, %v", err)
 	}
-	return b, nil
+	return bs, nil
 }

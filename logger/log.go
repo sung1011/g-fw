@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"time"
@@ -11,10 +10,10 @@ type Log struct {
 	Level  level
 	logger *Logger
 	Time   time.Time
-	Data   Fields
-	Buffer *bytes.Buffer
-	Msg    string
-	err    error
+	// Data   Fields
+	// Buffer *bytes.Buffer
+	Msg string
+	err error
 }
 
 type Fields map[string]interface{}

@@ -31,7 +31,7 @@ func NewLogger() *Logger {
 	return &Logger{
 		Out:       DefaultLoggerOut,
 		Hooks:     nil,
-		Formatter: new(FormatterJson),
+		Formatter: new(FormatterText),
 		ExitFunc:  DefaultLoggerExitFunc,
 	}
 }
