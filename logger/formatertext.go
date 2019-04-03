@@ -6,6 +6,9 @@ import (
 )
 
 type FormatterText struct {
+	TimestampFormat string
+	SortingFunc     func([]string)
+	FieldMap        FieldMap
 }
 
 func (f *FormatterText) Render(l *Log) ([]byte, error) {

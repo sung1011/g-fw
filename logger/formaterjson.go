@@ -7,6 +7,7 @@ import (
 
 type FormatterJson struct {
 	PrettyPrint bool
+	FieldMap    FieldMap
 }
 
 func (f *FormatterJson) Render(l *Log) ([]byte, error) {
