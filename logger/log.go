@@ -3,12 +3,13 @@ package logger
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"time"
 )
 
 type Log struct {
 	Level  level
-	Logger *Logger
+	logger *Logger
 	Time   time.Time
 	Data   Fields
 	Buffer *bytes.Buffer
@@ -32,13 +33,13 @@ const (
 
 func New() *Log {
 	return &Log{
-		Logger: NewLogger(),
+		logger: NewLogger(),
 		Time:   time.Now(),
 	}
 }
 
 func (this *Log) String() (string, error) {
-	b, err := this.Logger.Formatter.Render(this)
+	b, err := this.logger.Formatter.Render(this)
 	if err != nil {
 
 	}
@@ -75,7 +76,7 @@ func (this *Log) Error(args ...interface{}) {
 
 func (this *Log) Fatal(args ...interface{}) {
 	this.Log(FatalLevel, args...)
-	this.Logger.Exit(1)
+	this.logger.Exit(1)
 }
 
 func (this *Log) Panic(args ...interface{}) {
@@ -95,6 +96,9 @@ func (this *Log) log(lv level, msg string) {
 }
 
 func (this *Log) write() {
-	serialized, _ := this.Logger.Formatter.Render(this)
-	this.Logger.Out.Write(serialized)
+	serialized, err := this.logger.Formatter.Render(this)
+	if err != nil {
+		fmt.Fprint(os.Stderr, err)
+	}
+	this.logger.Out.Write(serialized)
 }
