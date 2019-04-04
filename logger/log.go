@@ -7,10 +7,10 @@ import (
 )
 
 type Log struct {
-	Level  level
+	Level  Level
 	logger *Logger
 	Time   time.Time
-	// Data   Fields
+	Kv     Fields
 	// Buffer *bytes.Buffer
 	Msg string
 	err error
@@ -18,10 +18,10 @@ type Log struct {
 
 type Fields map[string]interface{}
 
-type level int
+type Level int
 
 const (
-	PanicLevel level = iota
+	PanicLevel Level = iota
 	FatalLevel
 	ErrorLevel
 	WarnLevel
@@ -37,67 +37,98 @@ func New() *Log {
 	}
 }
 
-func (this *Log) String() (string, error) {
-	b, err := this.logger.Formatter.Render(this)
-	if err != nil {
+// WithKv 自定义kv
+func (l *Log) WithKv(f Fields) *Log {
+	m := make(Fields, len(f))
+	for k, v := range f {
+		m[k] = v
+	}
+	l.Kv = m
+	return l
+}
 
+func (l *Log) String() (string, error) {
+	b, err := l.logger.Formatter.Render(l)
+	if err != nil {
+		fmt.Fprint(os.Stderr, err)
 	}
 	return string(b), nil
 }
 
-func (this *Log) Trace(args ...interface{}) {
-	this.Log(TraceLevel, args...)
+func (l *Log) Trace(args ...interface{}) {
+	l.Log(TraceLevel, args...)
 }
 
-func (this *Log) Debug(args ...interface{}) {
-	this.Log(DebugLevel, args...)
+func (l *Log) Debug(args ...interface{}) {
+	l.Log(DebugLevel, args...)
 }
 
-func (this *Log) Print(args ...interface{}) {
-	this.Info(args...)
+func (l *Log) Print(args ...interface{}) {
+	l.Info(args...)
 }
 
-func (this *Log) Info(args ...interface{}) {
-	this.Log(InfoLevel, args...)
+func (l *Log) Info(args ...interface{}) {
+	l.Log(InfoLevel, args...)
 }
 
-func (this *Log) Warn(args ...interface{}) {
-	this.Log(WarnLevel, args...)
+func (l *Log) Warn(args ...interface{}) {
+	l.Log(WarnLevel, args...)
 }
 
-func (this *Log) Warning(args ...interface{}) {
-	this.Warn(args...)
+func (l *Log) Warning(args ...interface{}) {
+	l.Warn(args...)
 }
 
-func (this *Log) Error(args ...interface{}) {
-	this.Log(ErrorLevel, args...)
+func (l *Log) Error(args ...interface{}) {
+	l.Log(ErrorLevel, args...)
 }
 
-func (this *Log) Fatal(args ...interface{}) {
-	this.Log(FatalLevel, args...)
-	this.logger.Exit(1)
+func (l *Log) Fatal(args ...interface{}) {
+	l.Log(FatalLevel, args...)
+	l.logger.Exit(1)
 }
 
-func (this *Log) Panic(args ...interface{}) {
-	this.Log(PanicLevel, args...)
+func (l *Log) Panic(args ...interface{}) {
+	l.Log(PanicLevel, args...)
 	panic(fmt.Sprint(args...))
 }
 
-func (this *Log) Log(lv level, args ...interface{}) {
-	this.log(lv, fmt.Sprint(args...))
+func (l *Log) Log(lv Level, args ...interface{}) {
+	l.log(lv, fmt.Sprint(args...))
 }
 
-func (this *Log) log(lv level, msg string) {
-	this.Level = lv
-	this.Msg = msg
+func (l *Log) log(lv Level, msg string) {
+	l.Level = lv
+	l.Msg = msg
 	//TODO hooks
-	this.write()
+	l.write()
 }
 
-func (this *Log) write() {
-	serialized, err := this.logger.Formatter.Render(this)
+func (l *Log) write() {
+	serialized, err := l.logger.Formatter.Render(l)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 	}
-	this.logger.Out.Write(serialized)
+	l.logger.Out.Write(serialized)
+}
+
+func (level Level) MarshalText() ([]byte, error) {
+	switch level {
+	case TraceLevel:
+		return []byte("TRACE"), nil
+	case DebugLevel:
+		return []byte("DEBUG"), nil
+	case InfoLevel:
+		return []byte("INFO"), nil
+	case WarnLevel:
+		return []byte("WARNING"), nil
+	case ErrorLevel:
+		return []byte("ERROR"), nil
+	case FatalLevel:
+		return []byte("FATAL"), nil
+	case PanicLevel:
+		return []byte("PANIC"), nil
+	}
+
+	return nil, fmt.Errorf("not a valid logrus level %d", level)
 }

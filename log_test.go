@@ -6,6 +6,8 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	log := logger.New()
-	log.Warn("haha")
+	logger.New().WithKv(logger.Fields{
+		"foo": 123,
+		"bar": "xxx",
+	}).Warn("hahaha")
 }
